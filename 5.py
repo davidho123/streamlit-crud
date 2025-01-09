@@ -76,7 +76,7 @@ class StreamlitCRUD:
                 # 添加标签
                 row_input = st.columns([1, 4])
                 row_input[0].markdown(f":red[*]{attr_name}")
-                st.html("<style>.stMarkdown {position: absolute; top: 10px;}</style>")
+                st.html("<style>.stMarkdown {position: absolute; top: 8px;}</style>")
                 with row_input[1]:
                     if attr_name == "entry_time":
                         value = st.text_input(attr_name, value=default_value, key=f"{form_key}_{attr_name}", disabled=disabled,label_visibility="collapsed")
@@ -165,7 +165,7 @@ class StreamlitCRUD:
                 st.error(f"数据 ID {data_id} 未找到")
 
     def modify_data(self, data_id):
-        st.title(f"修改数据信息 (ID: {data_id})")
+        # st.title(f"修改数据信息 (ID: {data_id})")
         
         with Session(self.engine) as session:
             data_entry = session.exec(select(self.model_class).where(self.model_class.id == data_id)).first()
@@ -183,7 +183,7 @@ class StreamlitCRUD:
             st.toast(f"数据 ID {data_id} 已成功更新！")
 
     def delete_data_with_confirmation(self, data_id):
-        st.title(f"删除数据信息 (ID: {data_id})")
+        # st.title(f"删除数据信息 (ID: {data_id})")
         
         with Session(self.engine) as session:
             data_entry = session.exec(select(self.model_class).where(self.model_class.id == data_id)).first()
@@ -201,7 +201,7 @@ class StreamlitCRUD:
             st.toast(f"数据 ID {data_id} 已成功删除！")
 
     def view_data_by_id(self, data_id):
-        st.title(f"查看数据信息 (ID: {data_id})")
+        # st.title(f"查看数据信息 (ID: {data_id})")
         
         with Session(self.engine) as session:
             data_entry = session.exec(select(self.model_class).where(self.model_class.id == data_id)).first()
@@ -315,34 +315,40 @@ class StreamlitCRUD:
 
     def main(self):
         self.style2()
-        
-        @st.dialog(title="数据操作", width="small")
-        def dialog_operation(operation):
-            if "新增" in operation:                
-                self.handle_add_submission()
-                    
-            elif "修改" in operation:
-                data_id = st.columns([1, 2])[0].number_input("请输入数据ID", min_value=1, step=1)
-                self.modify_data(data_id)
-                
-            elif "查看" in operation:
-                data_id = st.columns([1, 2])[0].number_input("请输入数据ID", min_value=1, step=1)
-                self.view_data_by_id(data_id)
-            elif "删除" in operation:
-                data_id = st.columns([1, 2])[0].number_input("请输入数据ID", min_value=1, step=1)
-                self.delete_data_with_confirmation(data_id)
-                
-        st.markdown("### 数据管理")
+
+        def data_id_input():
+            row_input = st.columns([1, 2,1])
+            row_input[0].markdown("**请输入数据ID**")
+            st.html("<style>.stMarkdown {position: absolute; top: 8px;}</style>")
+            data_id = row_input[1].number_input("请输入数据ID", min_value=1, step=1,label_visibility="collapsed")
+            return data_id
+
+        st.subheader("数据管理")
         with st.container(key="add_button"):
             rows = st.columns([1, 1, 1, 1, 10])
             if rows[0].button(":material/add:新增"):
-                dialog_operation("新增")
+                @st.dialog("新增数据")
+                def dialog_add_data():
+                    self.handle_add_submission()
+                dialog_add_data()
             if rows[1].button(":material/edit:修改"):
-                dialog_operation("修改")
+                @st.dialog("修改数据")
+                def dialog_modify_data():
+                    data_id = data_id_input()
+                    self.modify_data(data_id)
+                dialog_modify_data()
             if rows[2].button(":material/search:查看"):
-                dialog_operation("查看")
+                @st.dialog("查看数据")
+                def dialog_view_data():
+                    data_id = data_id_input()
+                    self.view_data_by_id(data_id)
+                dialog_view_data()
             if rows[3].button(":material/delete:删除", type="primary"):
-                dialog_operation("删除")
+                @st.dialog("删除数据")
+                def dialog_delete_data():
+                    data_id = data_id_input()
+                    self.delete_data_with_confirmation(data_id)
+                dialog_delete_data()
         
         self.display_data()
 
