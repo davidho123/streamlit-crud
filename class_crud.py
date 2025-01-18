@@ -2,20 +2,20 @@
 根据数据库模型类，动态生成表单字段，并校验输入是否为空（排除布尔值字段）并转换数据类型。
 内容：
 1、增删改查按钮,点击后弹出操作表单
-2、筛选框
+2、筛选过滤框
 3、数据显示
 4、弹窗内，名称和组件分开，同行显示，且名称前加红色星号
+5、样式：减去顶部空间，调整body外边距
 
 author: davidho
 date: 2025-01-09
 version: 0.1
 """
-
+import os
 
 import streamlit as st
 from sqlmodel import SQLModel, Field, create_engine, Session, select, inspect
 from datetime import date, datetime
-import time
 import streamlit_antd_components as sac
 import logging
 import pandas as pd
@@ -26,7 +26,9 @@ from zoneinfo import ZoneInfo
 class Data(SQLModel, table=True):
     __tablename__ = "data"
     __table_args__ = {'extend_existing': True}
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True,
+                    sa_column_kwargs={"autoincrement": True})
+    名称: str = Field(default="")
     名称: str = Field(default="")
     价格: float = Field(default=0.0)
     有货: bool = Field(default=True)
@@ -44,7 +46,13 @@ class StreamlitCRUD:
         self.configure_logging()
 
     def configure_logging(self):
-        logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        # 确保 log 文件夹存在
+        log_folder = 'log'
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+        # 动态生成日志文件名，以当前日期命名
+        log_filename = f'{log_folder}/crud_{date.today().strftime("%Y-%m-%d")}.log'
+        logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     def create_database_engine(self, database_url):
         engine = create_engine(database_url)
@@ -66,7 +74,9 @@ class StreamlitCRUD:
         form_data = {}
         form_key = f"data_form_{self.model_name}"
         with st.form(key=form_key):
+            i=0
             for attr_name, attr_info in self.model_attributes.items():
+                i += 1
                 attr_type = attr_info["type"]
                 if initial_values:
                     default_value = initial_values.get(attr_name, attr_info["default"])
@@ -75,8 +85,8 @@ class StreamlitCRUD:
             
                 # 添加标签
                 row_input = st.columns([1, 4])
-                row_input[0].markdown(f":red[*]{attr_name}")
-                st.html("<style>.stMarkdown {position: absolute; top: 8px;}</style>")
+                row_input[0].container(key=f"title{i}").markdown(f":red[*]{attr_name}")
+                st.html("<style>.st-key-title%d {position: absolute; top: 10px;}</style>"%i)
                 with row_input[1]:
                     if attr_name == "entry_time":
                         value = st.text_input(attr_name, value=default_value, key=f"{form_key}_{attr_name}", disabled=disabled,label_visibility="collapsed")
@@ -277,17 +287,9 @@ class StreamlitCRUD:
                 .block-container { 
                     padding: 20px 50px;
                 }
-                
-                [data-testid="stPopoverBody"] {
-                    left : 30px;
-                    max-height: 700px;
-                    width: 500px;
-                }
+
                 .stSidebar  {
                     width: 250px;
-                }
-                div.st-emotion-cache-16txtl3.eczjsme4 > div > div > div > div > div:nth-child(6) > div > div > hr
-                {margin-top: 0px;
                 }
 
             </style>
@@ -314,12 +316,13 @@ class StreamlitCRUD:
             """)
 
     def main(self):
+        self.style()
         self.style2()
 
         def data_id_input():
             row_input = st.columns([1, 2,1])
-            row_input[0].markdown("**请输入数据ID**")
-            st.html("<style>.stMarkdown {position: absolute; top: 8px;}</style>")
+            row_input[0].container(key="data_id_input").markdown("**请输入数据ID**")
+            st.html("<style>.st-key-data_id_input {position: absolute; top: 8px;}</style>")
             data_id = row_input[1].number_input("请输入数据ID", min_value=1, step=1,label_visibility="collapsed")
             return data_id
 
@@ -355,10 +358,7 @@ class StreamlitCRUD:
 if __name__ == "__main__":
     st.set_page_config(page_title="数据管理系统", page_icon=":material/database:", layout="wide")
     stcrud = StreamlitCRUD(Data, "sqlite:///example.db")
-    stcrud.style()
     stcrud.main()
-    with st.sidebar:
-        st.text("数据管理系统")
     
     
 
