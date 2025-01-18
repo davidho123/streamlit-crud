@@ -1,11 +1,12 @@
 """
 根据数据库模型类，动态生成表单字段，并校验输入是否为空（排除布尔值字段）并转换数据类型。
 内容：
-1、增删改查按钮,点击后弹出操作表单
-2、筛选过滤框
-3、数据显示
-4、弹窗内，名称和组件分开，同行显示，且名称前加红色星号
-5、样式：减去顶部空间，调整body外边距
+- 1、根据数据库模型，动态生成表单组件。\
+   表单组件根据模型的字段类型，动态生成对应的输入组件。
+- 2、生成有增删改查按钮，提交后实现数据库的增删改查功能。
+- 3、数据库以dataframe表格显示，表格配有过滤搜索、分页、下载功能。
+- 4、在根目录下新增log文件夹，以当前日期创建日志文件，记录增删改查信息。
+- 5、默认加载样式修改：设置header高度为1，减少body外边距
 
 author: davidho
 date: 2025-01-09
@@ -19,7 +20,7 @@ from datetime import date, datetime
 import streamlit_antd_components as sac
 import logging
 import pandas as pd
-from zoneinfo import ZoneInfo  
+# from zoneinfo import ZoneInfo
 
 
 # 定义数据库模型类
@@ -37,7 +38,7 @@ class Data(SQLModel, table=True):
     备注: str = Field(default="无")  # 备注属性会使用多行文字组件
 
 
-class StreamlitCRUD:
+class StreamlitCrud:
     def __init__(self, model_class, database_url):
         self.model_class = model_class
         self.database_url = database_url
@@ -88,9 +89,7 @@ class StreamlitCRUD:
                 row_input[0].container(key=f"title{i}").markdown(f":red[*]{attr_name}")
                 st.html("<style>.st-key-title%d {position: absolute; top: 10px;}</style>"%i)
                 with row_input[1]:
-                    if attr_name == "entry_time":
-                        value = st.text_input(attr_name, value=default_value, key=f"{form_key}_{attr_name}", disabled=disabled,label_visibility="collapsed")
-                    elif attr_name == "备注":
+                    if attr_name in ["备注" ,"Remarks"]:
                         value = st.text_area(attr_name, value=default_value, key=f"{form_key}_{attr_name}", disabled=disabled,label_visibility="collapsed")
                     elif attr_type == int:
                         value = st.number_input(attr_name, step=1, value=default_value, key=f"{form_key}_{attr_name}", disabled=disabled, label_visibility="collapsed")
@@ -271,7 +270,7 @@ class StreamlitCRUD:
             
             limit = 10
             height = 402
-            beijingtime = datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+            beijingtime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             row_select[5].download_button("⬇️导出下表数据", data=filtered_df.to_csv(index=False),
                                         file_name=f"{beijingtime}data.csv", mime="text/csv")
             
@@ -356,8 +355,9 @@ class StreamlitCRUD:
         self.display_data()
 
 if __name__ == "__main__":
+    # 要设置wide模式，否则按钮会挤在一起
     st.set_page_config(page_title="数据管理系统", page_icon=":material/database:", layout="wide")
-    stcrud = StreamlitCRUD(Data, "sqlite:///example.db")
+    stcrud = StreamlitCrud(Data, "sqlite:///example.db")
     stcrud.main()
     
     
