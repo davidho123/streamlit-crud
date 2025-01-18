@@ -1,7 +1,7 @@
 # Streamlit-Crud
 
 **Automatically generate UI interfaces and implement CRUD functions**
-
+[中文说明](README-zh.md)
 ![CRUD主界面](home.png)\
 ![新增表单](creat.png)\
 ![修改表单](modify.png)
