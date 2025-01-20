@@ -4,7 +4,12 @@
 2、侧边栏选择数据库的表
 3、中心区有初次过滤，下方显示过滤后数据
 4、详情按钮，对初次过滤的数据，根据id进行二次过滤，然后选择显示的数据
+
+author: davidho
+date: 2025-01-20
+version: 0.1.6
 """
+
 import streamlit as st
 from datetime import datetime
 from sqlmodel import SQLModel, create_engine, inspect
@@ -12,6 +17,11 @@ import streamlit_antd_components as sac
 import pandas as pd
 
 class ReadData():
+    """
+    :param database_url:str
+    根据数据库地址，过滤并显示数据
+    """
+
     def __init__(self, database_url):
         self.database_url = database_url
         self.engine = self.create_database_engine(database_url)
@@ -61,7 +71,20 @@ class ReadData():
             </style>
             """)
 
-    def display_data(self):
+    @st.dialog(title="数据详情",width="large")
+    def show_detail(self, df):
+        # id_column = st.selectbox('选择过滤列', df.columns)
+        id_value = st.selectbox('选择id值', df["id"])
+        if id_value:
+            id_df = df[df["id"] == id_value]
+            if id_df.empty:
+                st.info("未找到对应ID的数据")
+            else:
+                selected_columns = st.multiselect('选择要显示的列', id_df.columns, default=None)
+                for column in selected_columns:
+                    st.text_area(f"{column} 数据", value=id_df[column].to_string(index=False), height=150)
+
+    def main(self):
         self.style()
         if self.table_name:
             df = self.read_table_to_df()
@@ -96,22 +119,10 @@ class ReadData():
         else:
             st.info("请选择一个表")
 
-    @st.dialog(title="数据详情",width="large")
-    def show_detail(self, df):
-        # id_column = st.selectbox('选择过滤列', df.columns)
-        id_value = st.selectbox('选择id值', df["id"])
-        if id_value:
-            id_df = df[df["id"] == id_value]
-            if id_df.empty:
-                st.info("未找到对应ID的数据")
-            else:
-                selected_columns = st.multiselect('选择要显示的列', id_df.columns, default=None)
-                for column in selected_columns:
-                    st.text_area(f"{column} 数据", value=id_df[column].to_string(index=False), height=150)
 
 
 if __name__ == '__main__':
     database_url = "sqlite:///example.db"
     st.set_page_config(page_title="数据查阅系统", page_icon=":material/database:", layout="wide")
     read = ReadData(database_url)
-    read.display_data()
+    read.main()

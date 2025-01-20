@@ -9,8 +9,8 @@
 - 5、默认加载样式修改：设置header高度为1，减少body外边距
 
 author: davidho
-date: 2025-01-09
-version: 0.1
+date: 2025-01-20
+version: 0.1.6
 """
 import os
 
@@ -39,6 +39,11 @@ class Data(SQLModel, table=True):
 
 
 class StreamlitCrud:
+    """
+    :param model_class:class
+    :param database_url:str
+    根据数据库模型，和数据库地址，自动生成CRUD界面和功能
+    """
     def __init__(self, model_class, database_url):
         self.model_class = model_class
         self.database_url = database_url
