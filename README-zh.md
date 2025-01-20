@@ -48,7 +48,7 @@ st.set_page_config ( layout="wide" )
 ```python
 import streamlit as st
 from sqlmodel import SQLModel, Field
-from streamlit_crud.class_crud import StreamlitCrud
+from streamlit_crud import StreamlitCrud
 from datetime import date, datetime
 
 # 定义数据库模型类

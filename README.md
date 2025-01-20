@@ -48,7 +48,7 @@ Table filtering uses pandas
 ```Python
 import streamlit as st
 from sqlmodel import SQLModel, Field
-from streamlit_crud.class_crud import StreamlitCrud
+from streamlit_crud import StreamlitCrud
 from datetime import date, datetime
 
 # Define the database model class
