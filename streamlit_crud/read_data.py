@@ -82,7 +82,8 @@ class ReadData():
             else:
                 selected_columns = st.multiselect('选择要显示的列', id_df.columns, default=None)
                 for column in selected_columns:
-                    st.text_area(f"{column} 数据", value=id_df[column].to_string(index=False), height=150)
+                    value = id_df[column].to_string(index=False)
+                    st.text_area(f"{column} 数据", value=value)
 
     def main(self):
         self.style()

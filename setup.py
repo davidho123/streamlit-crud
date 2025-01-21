@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 
-with open( "README-zh.md", encoding="utf-8") as fh:
+with open( "README.md", encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
-VERSION = '0.1.6'
+VERSION = '0.1.61'
 DESCRIPTION = 'Automatically generate UI components based on the data model, and implement CRUD functionalities.'
 LONG_DESCRIPTION = 'Dynamically generate form UI components based on the database model class, and implement functions for creating, deleting, updating, and querying.'
 
